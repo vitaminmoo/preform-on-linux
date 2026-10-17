@@ -36,6 +36,9 @@ and Proton Hotfix:
 3. Run `lutris -i preform.yaml`, or in Lutris click **+** → *Install from a local install
    script*, and accept the defaults.
 
+Release and beta both default to `~/Games/preform`. To install both, choose a different
+folder for the second one, e.g. `~/Games/preform-beta`.
+
 Lutris then:
 
 - uses its default Wine version, GE-Proton (Latest),
