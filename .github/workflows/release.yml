@@ -15,9 +15,9 @@ jobs:
       contents: write
     steps:
       - run: dnf install -y --setopt=install_weak_deps=False git make mingw64-gcc gh
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: make
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: shims
           path: build/*.dll
