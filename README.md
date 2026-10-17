@@ -1,19 +1,46 @@
 # PreForm on Linux
 
-How to run [Formlabs PreForm](https://formlabs.com/software/preform/) on Linux, plus
-the small shim DLLs that make it work.
+Run [Formlabs PreForm](https://formlabs.com/software/preform/) on Linux, including
+network printer discovery. PreForm itself is unmodified and comes straight from
+formlabs.com; this repo adds the few small pieces Proton is missing.
 
-PreForm is Windows/macOS only, but its Windows build runs under
-[Proton](https://github.com/ValveSoftware/Proton) once two gaps in Proton are filled:
+## Install
 
-| Shim | Without it | What it does |
-|---|---|---|
-| `icuuc.dll` | Launcher exits silently: `Qt6Core.dll` can't find `icuuc.dll` | Forwards to the `icu.dll` Proton already ships, the way Windows' own `icuuc.dll` does. Only needed before GE-Proton 11, and on Valve's Proton, which still lacks it. |
-| `dnsapi.dll` | Crash at startup: `unimplemented function DNSAPI.dll.DnsStartMulticastQuery` | Proxies Wine's `dnsapi` and implements mDNS, so printers on your network show up |
+```sh
+curl -fsSL https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/install.sh | bash
+```
 
-PreForm itself is unmodified and comes straight from formlabs.com. Prebuilt shims are on
-the [releases page](https://github.com/vitaminmoo/preform-on-linux/releases), built
-by CI from the source in [`shims/`](shims).
+PreForm then shows up in your application menu, and as a `preform` command.
+
+### Beta
+
+To install the [public beta](https://downloads.formlabs.com/PreForm/Beta/preform.exe)
+instead, or alongside the release as `preform-beta`:
+
+```sh
+curl -fsSL https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/install.sh | bash -s -- --beta
+```
+
+### Updating and uninstalling
+
+PreForm updates itself as usual. Running the install command again refreshes this
+repo's pieces without reinstalling PreForm.
+
+To remove everything, including PreForm's settings and sign-in (add `--beta` to remove
+the beta):
+
+```sh
+curl -fsSL https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/install.sh | bash -s -- --uninstall
+```
+
+Prefer to read the script first? Download [`install.sh`](install.sh) and run
+`bash install.sh [--beta] [--uninstall]`.
+
+### Steam and Steam Deck
+
+After installing, you can add PreForm to Steam with **Add a Non-Steam Game** → Browse →
+`~/.local/share/preform-on-linux/bin/preform`. Leave Proton/compatibility *off* for it:
+the launcher runs Proton itself. (Not tested yet.)
 
 ## Status
 
@@ -26,20 +53,21 @@ GE-Proton 11 and Proton Hotfix:
 - Not tested yet: connecting to and printing on real networked printers, and USB.
   Reports welcome.
 
-## Install
+## How it works
 
-```sh
-curl -fsSL https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/install.sh | bash
-```
+PreForm is Windows/macOS only, but its Windows build runs under
+[Proton](https://github.com/ValveSoftware/Proton) once two gaps in Proton are filled:
 
-That's it: PreForm shows up in your application menu, and as a `preform` command. For
-the [public beta](https://downloads.formlabs.com/PreForm/Beta/preform.exe), add
-`-s -- --beta` after `bash`; it installs alongside the release as `preform-beta`.
+| Shim | Without it | What it does |
+|---|---|---|
+| `icuuc.dll` | Launcher exits silently: `Qt6Core.dll` can't find `icuuc.dll` | Forwards to the `icu.dll` Proton already ships, the way Windows' own `icuuc.dll` does. Only needed before GE-Proton 11, and on Valve's Proton, which still lacks it. |
+| `dnsapi.dll` | Crash at startup: `unimplemented function DNSAPI.dll.DnsStartMulticastQuery` | Proxies Wine's `dnsapi` and implements mDNS, so printers on your network show up |
 
-Prefer to read it first? Download [`install.sh`](install.sh) and run
-`bash install.sh [--beta]`.
+Prebuilt shims are on the [releases page](https://github.com/vitaminmoo/preform-on-linux/releases),
+built by CI from the source in [`shims/`](shims). See
+[docs/TECHNICAL.md](docs/TECHNICAL.md) for the details.
 
-What it does:
+`install.sh`:
 
 - Uses [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher), which runs
   Proton outside Steam; if `umu-run` isn't installed, it downloads umu's standalone
@@ -50,19 +78,6 @@ What it does:
 - Adds the shims, a launcher that keeps `dnsapi.dll` in place across PreForm's
   self-updates, and a menu entry with PreForm's own icon (extracted from your copy;
   no Formlabs artwork is redistributed here).
-
-Running it again refreshes the shims, launcher and menu entry without reinstalling
-PreForm. To remove everything, including PreForm's settings and sign-in:
-
-```sh
-curl -fsSL https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/install.sh | bash -s -- --uninstall
-```
-
-### Steam and Steam Deck
-
-After installing, you can add PreForm to Steam with **Add a Non-Steam Game** → Browse →
-`~/.local/share/preform-on-linux/bin/preform`. Leave Proton/compatibility *off* for it:
-the launcher runs Proton itself. (Not tested yet.)
 
 ## Install by hand
 
