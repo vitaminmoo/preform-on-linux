@@ -28,25 +28,35 @@ and Proton Hotfix:
 
 ## Install with Lutris (recommended)
 
-1. Install [Lutris](https://lutris.net) 0.5.17 or newer.
-2. Download an installer:
-   - [`lutris/preform.yaml`](lutris/preform.yaml) for the current release, or
-   - [`lutris/preform-beta.yaml`](lutris/preform-beta.yaml) for the
-     [public beta](https://downloads.formlabs.com/PreForm/Beta/preform.exe).
-3. Run `lutris -i preform.yaml`, or in Lutris click **+** → *Install from a local install
-   script*, and accept the defaults.
+Install [Lutris](https://lutris.net) 0.5.17 or newer, then run one of these. Lutris
+downloads the installer script from this repo's latest release and walks you through it:
+
+```sh
+# Current release
+lutris -i https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/preform.yaml
+
+# Public beta
+lutris -i https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/preform-beta.yaml
+```
+
+With Flatpak Lutris, use `flatpak run net.lutris.Lutris -i <url>`. You can also download
+the YAML and use **+** → *Install from a local install script*.
 
 Release and beta both default to `~/Games/preform`. To install both, choose a different
 folder for the second one, e.g. `~/Games/preform-beta`.
 
-Lutris then:
+The installer:
 
-- uses its default Wine version, GE-Proton (Latest),
+- uses Lutris's default Wine version, GE-Proton (Latest),
 - downloads PreForm from formlabs.com and runs its installer silently,
 - puts `icuuc.dll` in the prefix's `system32`,
 - sets the DLL override `dnsapi=n,b` and `QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox`,
 - adds a pre-launch script that copies `dnsapi.dll` next to every installed
-  `PreForm.exe`, so it survives PreForm's self-updates.
+  `PreForm.exe`, so it survives PreForm's self-updates,
+- makes an icon, banner and cover art for Lutris from the icon in your copy of PreForm
+  ([`preform-art.py`](lutris/preform-art.py); no Formlabs artwork is redistributed here).
+
+These installers live here rather than on lutris.net, which only accepts games.
 
 If you've changed Lutris's global Wine version (Preferences → Runners → Wine) to a
 non-Proton build such as Wine-GE, switch PreForm to a Proton build in its
@@ -101,7 +111,7 @@ PreForm's log is at
 
 | Path | |
 |---|---|
-| [`lutris/`](lutris) | Lutris installers for the release and the beta |
+| [`lutris/`](lutris) | Lutris installers for the release and the beta, and the art generator |
 | [`shims/icuuc`](shims/icuuc) | `icuuc.dll`: export forwarders to Proton's `icu.dll` |
 | [`shims/dnsapi`](shims/dnsapi) | `dnsapi.dll`: proxy for Wine's `dnsapi` with an mDNS querier (`mdns.c`) |
 | [`tools/`](tools) | Regenerate the shims' export lists from a Proton install |

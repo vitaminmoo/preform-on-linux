@@ -10,8 +10,9 @@ script:
     - setup:
         url: https://downloads.formlabs.com/PreForm/Release/preform.exe
         filename: preform.exe
-    - icuuc: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.2/icuuc.dll
-    - dnsapi: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.2/dnsapi.dll
+    - icuuc: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.3/icuuc.dll
+    - dnsapi: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.3/dnsapi.dll
+    - art: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.3/preform-art.py
 
   game:
     prefix: $GAMEDIR
@@ -36,6 +37,10 @@ script:
     - merge:
         src: dnsapi
         dst: $GAMEDIR/preform-on-linux
+    # Icon, banner and cover art for Lutris, drawn from the icon in PreForm's own exe
+    - execute:
+        command: python3 "$art" "$GAMEDIR/drive_c/Program Files/Formlabs/PreForm/PreFormLauncher.exe" preform
+        disable_runtime: true
     - write_file:
         file: $GAMEDIR/preform-on-linux/prelaunch.sh
         content: |
