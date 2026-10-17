@@ -2,7 +2,7 @@
 
 PreForm (tested: 3.64.1.664 release, 3.65.0.1063 beta) installs fine under Proton, but
 won't start without two shim DLLs. With them it runs, and finds printers on the LAN via
-mDNS. Tested with Proton Hotfix and GE-Proton10-25, via umu/Lutris.
+mDNS. Tested with Proton Hotfix, GE-Proton10-25 and GE-Proton11-9, via umu and Lutris.
 
 Install layout (the release goes to `PreForm\`, the beta bundle to `PreForm-beta\`;
 the Burn bundle ignores `InstallFolder=`):
@@ -13,7 +13,7 @@ C:\Program Files\Formlabs\PreForm\
     Qt6Core.dll, msvcp140*.dll, vcruntime140*.dll
     3.64.1.664\
         PreForm.exe, Qt6*.dll, QtWebEngineProcess.exe, ...
-        dnsapi.dll               <- shim #2, copied in by prelaunch.sh
+        dnsapi.dll               <- shim #2, copied in by the launcher / prelaunch.sh
 C:\windows\system32\
     icuuc.dll                    <- shim #1
 ```
@@ -51,6 +51,12 @@ so under a different name the loader would look for a nonexistent builtin `icuuc
 
 It goes in `system32` (64-bit only, because PreForm is x64-only). Proton doesn't manage
 that filename, so prefix updates leave it alone.
+
+GE-Proton 11 ships its own `icuuc.dll` and `icuin.dll`, forwarders to `icu.dll` like
+ours, as symlinks from `system32` into the Proton install. Its `icuuc.dll` covers all 22
+symbols Qt6Core needs, so the installers only add ours when `system32\icuuc.dll` doesn't
+exist, and never write through the symlink. Valve's Proton (Hotfix, Experimental 11, as of
+October 2026) doesn't ship one.
 
 `make regen PROTON=...` regenerates `icuuc.def` from a Proton's `icu.dll`. The export
 list is identical in Proton Hotfix, Proton Experimental and GE-Proton10-25.
@@ -132,8 +138,8 @@ PreForm's log (`%LOCALAPPDATA%\Formlabs\PreForm\Logs\log.txt`) then shows
 ### Caveats
 
 - **Placement:** the proxy has to sit next to `PreForm.exe` in the version dir. PreForm
-  updates itself into a new version dir, so the Lutris installer writes `prelaunch.sh`,
-  which copies it into every version dir before each launch. It can't go in `system32`:
+  updates itself into a new version dir, so `install.sh`'s launcher (and the Lutris
+  installers' `prelaunch.sh`) copies it into every version dir before each launch. It can't go in `system32`:
   that's where the real dnsapi lives, and Proton rewrites builtin DLLs there on prefix
   updates.
 - **IPv4 only.** Formlabs printers advertise IPv4, so this hasn't mattered.

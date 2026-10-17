@@ -10,9 +10,9 @@ script:
     - setup:
         url: https://downloads.formlabs.com/PreForm/Release/preform.exe
         filename: preform.exe
-    - icuuc: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.3/icuuc.dll
-    - dnsapi: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.3/dnsapi.dll
-    - art: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.3/preform-art.py
+    - icuuc: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.1.0/icuuc.dll
+    - dnsapi: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.1.0/dnsapi.dll
+    - art: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.1.0/preform-art.py
 
   game:
     prefix: $GAMEDIR
@@ -30,10 +30,13 @@ script:
         prefix: $GAMEDIR
         executable: setup
         args: /quiet /norestart
-    # Qt6Core imports the Windows 10 system icuuc.dll; this forwards to Proton's icu.dll
-    - merge:
-        src: icuuc
-        dst: $GAMEDIR/drive_c/windows/system32
+    # Qt6Core imports the Windows 10 system icuuc.dll; this forwards to Proton's icu.dll.
+    # GE-Proton 11+ ships its own as a symlink into the Proton install: don't write through it.
+    - execute:
+        command: >-
+          d="$GAMEDIR/drive_c/windows/system32/icuuc.dll";
+          [ -e "$d" ] || [ -L "$d" ] || cp "$icuuc" "$d"
+        disable_runtime: true
     - merge:
         src: dnsapi
         dst: $GAMEDIR/preform-on-linux

@@ -8,7 +8,7 @@ PreForm is Windows/macOS only, but its Windows build runs under
 
 | Shim | Without it | What it does |
 |---|---|---|
-| `icuuc.dll` | Launcher exits silently: `Qt6Core.dll` can't find `icuuc.dll` | Forwards to the `icu.dll` Proton already ships, the way Windows' own `icuuc.dll` does |
+| `icuuc.dll` | Launcher exits silently: `Qt6Core.dll` can't find `icuuc.dll` | Forwards to the `icu.dll` Proton already ships, the way Windows' own `icuuc.dll` does. Only needed before GE-Proton 11, and on Valve's Proton, which still lacks it. |
 | `dnsapi.dll` | Crash at startup: `unimplemented function DNSAPI.dll.DnsStartMulticastQuery` | Proxies Wine's `dnsapi` and implements mDNS, so printers on your network show up |
 
 PreForm itself is unmodified and comes straight from formlabs.com. Prebuilt shims are on
@@ -17,8 +17,8 @@ by CI from the source in [`shims/`](shims).
 
 ## Status
 
-Tested on Fedora 44 with PreForm 3.64.1 (release) and 3.65.0 (beta), on GE-Proton 10
-and Proton Hotfix:
+Tested on Fedora 44 with PreForm 3.64.1 (release) and 3.65.0 (beta), on GE-Proton 10,
+GE-Proton 11 and Proton Hotfix:
 
 - Works: startup, sign-in, Dashboard, opening and slicing models.
 - Works: printer discovery over mDNS, tested against a printer advertised with
@@ -26,81 +26,104 @@ and Proton Hotfix:
 - Not tested yet: connecting to and printing on real networked printers, and USB.
   Reports welcome.
 
-## Install with Lutris (recommended)
-
-Install [Lutris](https://lutris.net) 0.5.17 or newer, then run one of these. Lutris
-downloads the installer script from this repo's latest release and walks you through it:
+## Install
 
 ```sh
-# Current release
-lutris -i https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/preform.yaml
+curl -fsSL https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/install.sh | bash
+```
 
-# Public beta
+That's it: PreForm shows up in your application menu, and as a `preform` command. For
+the [public beta](https://downloads.formlabs.com/PreForm/Beta/preform.exe), add
+`-s -- --beta` after `bash`; it installs alongside the release as `preform-beta`.
+
+Prefer to read it first? Download [`install.sh`](install.sh) and run
+`bash install.sh [--beta]`.
+
+What it does:
+
+- Uses [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher), which runs
+  Proton outside Steam; if `umu-run` isn't installed, it downloads umu's standalone
+  release. umu fetches the latest GE-Proton on first run (set `PROTONPATH` to use
+  another Proton).
+- Downloads PreForm from formlabs.com and runs its installer silently, in its own
+  prefix under `~/.local/share/preform-on-linux/`.
+- Adds the shims, a launcher that keeps `dnsapi.dll` in place across PreForm's
+  self-updates, and a menu entry with PreForm's own icon (extracted from your copy;
+  no Formlabs artwork is redistributed here).
+
+Running it again refreshes the shims, launcher and menu entry without reinstalling
+PreForm. To remove everything, including PreForm's settings and sign-in:
+
+```sh
+curl -fsSL https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/install.sh | bash -s -- --uninstall
+```
+
+### Steam and Steam Deck
+
+After installing, you can add PreForm to Steam with **Add a Non-Steam Game** → Browse →
+`~/.local/share/preform-on-linux/bin/preform`. Leave Proton/compatibility *off* for it:
+the launcher runs Proton itself. (Not tested yet.)
+
+## Install with Lutris
+
+If you already use [Lutris](https://lutris.net) (0.5.17 or newer), there are installer
+scripts for it too. Lutris downloads them from this repo's latest release:
+
+```sh
+lutris -i https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/preform.yaml
 lutris -i https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/preform-beta.yaml
 ```
 
-With Flatpak Lutris, use `flatpak run net.lutris.Lutris -i <url>`. You can also download
-the YAML and use **+** → *Install from a local install script*.
+With Flatpak Lutris, use `flatpak run net.lutris.Lutris -i <url>`. Release and beta
+both default to `~/Games/preform`; to install both, choose a different folder for the
+second one. The installers set up the same shims, plus a pre-launch script for
+`dnsapi.dll` and Lutris icon, banner and cover art
+([`preform-art.py`](lutris/preform-art.py)). They live here because lutris.net only
+accepts games.
 
-Release and beta both default to `~/Games/preform`. To install both, choose a different
-folder for the second one, e.g. `~/Games/preform-beta`.
+They use Lutris's default Wine version, GE-Proton (Latest). If you've changed Lutris's
+global Wine version to a non-Proton build such as Wine-GE, switch PreForm to a Proton
+build in its *Configure → Runner options*.
 
-The installer:
+## Install by hand
 
-- uses Lutris's default Wine version, GE-Proton (Latest),
-- downloads PreForm from formlabs.com and runs its installer silently,
-- puts `icuuc.dll` in the prefix's `system32`,
-- sets the DLL override `dnsapi=n,b` and `QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox`,
-- adds a pre-launch script that copies `dnsapi.dll` next to every installed
-  `PreForm.exe`, so it survives PreForm's self-updates,
-- makes an icon, banner and cover art for Lutris from the icon in your copy of PreForm
-  ([`preform-art.py`](lutris/preform-art.py); no Formlabs artwork is redistributed here).
-
-These installers live here rather than on lutris.net, which only accepts games.
-
-If you've changed Lutris's global Wine version (Preferences → Runners → Wine) to a
-non-Proton build such as Wine-GE, switch PreForm to a Proton build in its
-*Configure → Runner options*. Plain Wine has no `icu.dll` for the shim to forward to.
-
-## Install without Lutris (umu)
-
-Uses [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher), which runs
-Proton outside Steam. Any Proton build works except plain Wine and Wine-GE, which have no
-`icu.dll`.
+The same steps as `install.sh`, with [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher):
 
 ```sh
-export WINEPREFIX=~/Games/preform GAMEID=umu-default PROTONPATH=GE-Proton
+export WINEPREFIX=~/Games/preform GAMEID=umu-preform PROTONPATH=GE-Proton
 rel=https://github.com/vitaminmoo/preform-on-linux/releases/latest/download
+app="$WINEPREFIX/drive_c/Program Files/Formlabs/PreForm"
 
 # 1. Install PreForm
 curl -LO https://downloads.formlabs.com/PreForm/Release/preform.exe
 umu-run preform.exe /quiet /norestart
 
-# 2. Add the shims
-curl -L -o "$WINEPREFIX/drive_c/windows/system32/icuuc.dll" "$rel/icuuc.dll"
-for d in "$WINEPREFIX/drive_c/Program Files/Formlabs/PreForm"/*/; do
+# 2. Add the shims (GE-Proton 11+ already has icuuc.dll)
+sys32="$WINEPREFIX/drive_c/windows/system32"
+[ -e "$sys32/icuuc.dll" ] || curl -L -o "$sys32/icuuc.dll" "$rel/icuuc.dll"
+for d in "$app"/*/; do
     [ -f "$d/PreForm.exe" ] && curl -L -o "$d/dnsapi.dll" "$rel/dnsapi.dll"
 done
 
 # 3. Run
 WINEDLLOVERRIDES=dnsapi=n,b QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox \
-    umu-run "$WINEPREFIX/drive_c/Program Files/Formlabs/PreForm/PreFormLauncher.exe"
+    umu-run "$app/PreFormLauncher.exe"
 ```
 
-After PreForm updates itself, repeat the `dnsapi.dll` loop in step 2 for the new
-version folder.
-
+After PreForm updates itself, repeat the `dnsapi.dll` loop for the new version folder.
 For the beta, download `https://downloads.formlabs.com/PreForm/Beta/preform.exe` and
-replace `Formlabs/PreForm` with `Formlabs/PreForm-beta` in the paths above.
+use `Formlabs/PreForm-beta` in the paths.
 
 ## Troubleshooting
 
 PreForm's log is at
-`<prefix>/drive_c/users/steamuser/AppData/Local/Formlabs/PreForm/Logs/log.txt`.
+`<prefix>/drive_c/users/steamuser/AppData/Local/Formlabs/PreForm/Logs/log.txt`
+(the prefix is `~/.local/share/preform-on-linux/release` or `.../beta` with
+`install.sh`).
 
 | Symptom | Cause |
 |---|---|
-| Launcher exits immediately, no window | `icuuc.dll` missing from `system32`, or not running under Proton. Run with `WINEDEBUG=err` to see `icuuc.dll ... not found`. |
+| Launcher exits immediately, no window | No `icuuc.dll` in `system32`, or not running under Proton. Run with `WINEDEBUG=err` to see `icuuc.dll ... not found`. |
 | Crash: `unimplemented function DNSAPI.dll.DnsStartMulticastQuery` | `dnsapi.dll` isn't next to the `PreForm.exe` being run (often after an update), or the `dnsapi=n,b` override is missing. |
 | Log says `DnsStartMulticastQuery failed with status 120` | An old copy of the shim that only stubs discovery. Update `dnsapi.dll`. |
 | No printers found | Check the printer is visible to Linux: `avahi-browse -rt _formlabs_formule._tcp`. If it is, check your firewall allows UDP 5353 (mDNS). |
@@ -111,6 +134,7 @@ PreForm's log is at
 
 | Path | |
 |---|---|
+| [`install.sh`](install.sh) | The installer above |
 | [`lutris/`](lutris) | Lutris installers for the release and the beta, and the art generator |
 | [`shims/icuuc`](shims/icuuc) | `icuuc.dll`: export forwarders to Proton's `icu.dll` |
 | [`shims/dnsapi`](shims/dnsapi) | `dnsapi.dll`: proxy for Wine's `dnsapi` with an mDNS querier (`mdns.c`) |
@@ -127,7 +151,11 @@ make            # build/icuuc.dll, build/dnsapi.dll
 make regen PROTON=~/.local/share/Steam/steamapps/common/Proton\ Hotfix   # refresh export lists
 ```
 
-Pushing a `v*` tag makes CI build both DLLs and attach them to a GitHub release.
+To try `install.sh` with local builds, put `icuuc.dll`, `dnsapi.dll` and
+`preform-art.py` in one folder and run `PREFORM_SHIMS_DIR=<folder> bash install.sh`.
+
+Pushing a `v*` tag makes CI build the DLLs and attach them, with `install.sh`, the Lutris
+installers and `preform-art.py`, to a GitHub release.
 
 ## License
 

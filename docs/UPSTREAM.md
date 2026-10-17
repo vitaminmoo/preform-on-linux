@@ -7,12 +7,13 @@ and some of them from Formlabs' side with a small change.
 
 | Gap | Where | Status |
 |---|---|---|
-| No `icuuc.dll`/`icuin.dll` | Proton (Valve's `wine/dlls/icu` already provides `icu.dll`) | Not filed. The fix is two forwarder DLLs next to `icu.dll`, as on Windows. |
+| No `icuuc.dll`/`icuin.dll` | Proton (Valve's `wine/dlls/icu` already provides `icu.dll`) | Fixed in GE-Proton 11, which ships both as forwarders to `icu.dll`. Valve's Proton (Hotfix, Experimental 11) still lacks them; not filed there yet. |
 | `DnsStartMulticastQuery`/`DnsStopMulticastQuery` missing | Wine `dlls/dnsapi` | Wine 11.13+ has stubs that return success ([MR 11307](https://gitlab.winehq.org/wine/wine/-/merge_requests/11307), filed for PreForm). Proton 11 doesn't have them yet. `shims/dnsapi/mdns.c` is a working implementation that could replace those stubs. |
 | Chromium sandbox | Qt WebEngine under Wine | Known; `--no-sandbox` is the standard workaround. |
 
 Once Proton ships `icuuc.dll` and a working `DnsStartMulticastQuery`, PreForm runs on
-stock Proton with only the `--no-sandbox` environment variable.
+stock Proton with only the `--no-sandbox` environment variable. On GE-Proton 11, only
+the `dnsapi.dll` shim is still needed.
 
 ## On Formlabs' side
 

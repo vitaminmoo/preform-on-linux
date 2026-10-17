@@ -2,6 +2,10 @@
 """Make Lutris art for PreForm from the icon in the user's own PreFormLauncher.exe.
 
 Usage: preform-art.py <path to PreFormLauncher.exe> <game slug>
+       preform-art.py --icon <path to PreFormLauncher.exe> <out.png>
+
+The --icon form just saves the largest icon as a PNG (used by install.sh); it needs
+Pillow only if the exe's icon isn't PNG-compressed, which PreForm's is.
 
 Writes the icon, banner and cover art Lutris looks for by slug, skipping any that
 already exist. Lutris.net has no entry for PreForm to download art from, and nothing
@@ -17,12 +21,11 @@ import sys
 BLUE_TOP = (25, 117, 207)
 BLUE_BOTTOM = (16, 70, 130)
 RT_ICON, RT_GROUP_ICON = 3, 14
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 
-def read_icon(exe):
-    """Return the largest icon in a PE file's resources as a PIL image (no pefile needed)."""
-    from PIL import Image
-
+def read_icon_bytes(exe):
+    """Return the largest icon in a PE file's resources as PNG or .ico bytes (no pefile needed)."""
     data = open(exe, "rb").read()
     pe = struct.unpack_from("<I", data, 0x3C)[0]
     nsect, optsize = struct.unpack_from("<H12xH", data, pe + 6)
@@ -61,9 +64,27 @@ def read_icon(exe):
     best = max((struct.unpack_from("<BBBBHHIH", group, 6 + 14 * i) for i in range(count)),
                key=lambda e: ((e[0] or 256) * (e[1] or 256), e[5]))
     img = leaf(icons[best[7]])
-    if img[:8] != b"\x89PNG\r\n\x1a\n":  # a bare DIB: wrap it in a one-image .ico
+    if img[:8] != PNG_MAGIC:  # a bare DIB: wrap it in a one-image .ico
         img = struct.pack("<HHHBBBBHHII", 0, 1, 1, *best[:4], best[4], best[5], len(img), 22) + img
-    return Image.open(io.BytesIO(img)).convert("RGBA")
+    return img
+
+
+def read_icon(exe):
+    """Return the largest icon in a PE file's resources as a PIL image."""
+    from PIL import Image
+
+    return Image.open(io.BytesIO(read_icon_bytes(exe))).convert("RGBA")
+
+
+def save_icon(exe, out):
+    img = read_icon_bytes(exe)
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    if img[:8] == PNG_MAGIC:
+        with open(out, "wb") as f:
+            f.write(img)
+    else:
+        read_icon(exe).save(out)
+    print(f"wrote {out}")
 
 
 def gradient(size):
@@ -119,6 +140,9 @@ def banner(icon, size=(184, 69)):
 
 
 def main():
+    if sys.argv[1] == "--icon":
+        save_icon(sys.argv[2], sys.argv[3])
+        return
     exe, slug = sys.argv[1], sys.argv[2]
     try:
         from lutris.settings import BANNER_PATH, COVERART_PATH, ICON_PATH

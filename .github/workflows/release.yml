@@ -27,4 +27,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          gh release create "$GITHUB_REF_NAME" build/icuuc.dll build/dnsapi.dll lutris/*.yaml lutris/preform-art.py --generate-notes
+          gh release create "$GITHUB_REF_NAME" build/icuuc.dll build/dnsapi.dll install.sh lutris/*.yaml lutris/preform-art.py --generate-notes
