@@ -1,8 +1,8 @@
 # Source and docs: https://github.com/vitaminmoo/preform-on-linux
 name: PreForm
 game_slug: preform
-version: Latest release (GE-Proton)
-slug: preform-latest-ge-proton
+version: Release
+slug: preform-release
 runner: wine
 
 script:
@@ -10,8 +10,8 @@ script:
     - setup:
         url: https://downloads.formlabs.com/PreForm/Release/preform.exe
         filename: preform.exe
-    - icuuc: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.0/icuuc.dll
-    - dnsapi: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.0/dnsapi.dll
+    - icuuc: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.1/icuuc.dll
+    - dnsapi: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.1/dnsapi.dll
 
   game:
     prefix: $GAMEDIR
@@ -50,9 +50,10 @@ script:
           done
           exit 0
 
+  # No wine version on purpose: Lutris then uses its default, GE-Proton (Latest), via umu.
+  # It must be a Proton build; plain Wine has no icu.dll for icuuc.dll to forward to.
+  # (Setting `version: ge-proton` here fails: Lutris appends -x86_64 to it.)
   wine:
-    # Needs a Proton build: plain Wine has no icu.dll for icuuc.dll to forward to
-    version: ge-proton
     dxvk: false
     overrides:
       dnsapi: n,b

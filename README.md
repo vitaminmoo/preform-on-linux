@@ -29,18 +29,25 @@ and Proton Hotfix:
 ## Install with Lutris (recommended)
 
 1. Install [Lutris](https://lutris.net) 0.5.17 or newer.
-2. Download [`lutris/preform.yaml`](lutris/preform.yaml).
+2. Download an installer:
+   - [`lutris/preform.yaml`](lutris/preform.yaml) for the current release, or
+   - [`lutris/preform-beta.yaml`](lutris/preform-beta.yaml) for the
+     [public beta](https://downloads.formlabs.com/PreForm/Beta/preform.exe).
 3. Run `lutris -i preform.yaml`, or in Lutris click **+** → *Install from a local install
    script*, and accept the defaults.
 
 Lutris then:
 
-- uses GE-Proton (Latest),
+- uses its default Wine version, GE-Proton (Latest),
 - downloads PreForm from formlabs.com and runs its installer silently,
 - puts `icuuc.dll` in the prefix's `system32`,
 - sets the DLL override `dnsapi=n,b` and `QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox`,
 - adds a pre-launch script that copies `dnsapi.dll` next to every installed
   `PreForm.exe`, so it survives PreForm's self-updates.
+
+If you've changed Lutris's global Wine version (Preferences → Runners → Wine) to a
+non-Proton build such as Wine-GE, switch PreForm to a Proton build in its
+*Configure → Runner options*. Plain Wine has no `icu.dll` for the shim to forward to.
 
 ## Install without Lutris (umu)
 
@@ -70,6 +77,9 @@ WINEDLLOVERRIDES=dnsapi=n,b QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox \
 After PreForm updates itself, repeat the `dnsapi.dll` loop in step 2 for the new
 version folder.
 
+For the beta, download `https://downloads.formlabs.com/PreForm/Beta/preform.exe` and
+replace `Formlabs/PreForm` with `Formlabs/PreForm-beta` in the paths above.
+
 ## Troubleshooting
 
 PreForm's log is at
@@ -88,7 +98,7 @@ PreForm's log is at
 
 | Path | |
 |---|---|
-| [`lutris/preform.yaml`](lutris/preform.yaml) | Lutris installer |
+| [`lutris/`](lutris) | Lutris installers for the release and the beta |
 | [`shims/icuuc`](shims/icuuc) | `icuuc.dll`: export forwarders to Proton's `icu.dll` |
 | [`shims/dnsapi`](shims/dnsapi) | `dnsapi.dll`: proxy for Wine's `dnsapi` with an mDNS querier (`mdns.c`) |
 | [`tools/`](tools) | Regenerate the shims' export lists from a Proton install |

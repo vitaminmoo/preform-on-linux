@@ -1,0 +1,66 @@
+# Source and docs: https://github.com/vitaminmoo/preform-on-linux
+name: PreForm
+game_slug: preform
+version: Beta
+slug: preform-beta
+runner: wine
+
+script:
+  files:
+    - setup:
+        url: https://downloads.formlabs.com/PreForm/Beta/preform.exe
+        filename: preform.exe
+    - icuuc: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.1/icuuc.dll
+    - dnsapi: https://github.com/vitaminmoo/preform-on-linux/releases/download/v1.0.1/dnsapi.dll
+
+  game:
+    prefix: $GAMEDIR
+    arch: win64
+    # The beta installs to PreForm-beta; the launcher starts the newest versioned subdir
+    exe: $GAMEDIR/drive_c/Program Files/Formlabs/PreForm-beta/PreFormLauncher.exe
+
+  installer:
+    - task:
+        name: create_prefix
+        prefix: $GAMEDIR
+        arch: win64
+    - task:
+        name: wineexec
+        prefix: $GAMEDIR
+        executable: setup
+        args: /quiet /norestart
+    # Qt6Core imports the Windows 10 system icuuc.dll; this forwards to Proton's icu.dll
+    - merge:
+        src: icuuc
+        dst: $GAMEDIR/drive_c/windows/system32
+    - merge:
+        src: dnsapi
+        dst: $GAMEDIR/preform-on-linux
+    - write_file:
+        file: $GAMEDIR/preform-on-linux/prelaunch.sh
+        content: |
+          #!/bin/sh
+          # PreForm installs each version into its own folder and updates itself into a
+          # new one, so put the dnsapi proxy next to every PreForm.exe before each launch.
+          here="$(dirname "$0")"
+          for exe in "$here"/../drive_c/Program\ Files/Formlabs/*/*/PreForm.exe; do
+              [ -f "$exe" ] || continue
+              dir="$(dirname "$exe")"
+              cmp -s "$here/dnsapi.dll" "$dir/dnsapi.dll" || cp "$here/dnsapi.dll" "$dir/"
+          done
+          exit 0
+
+  # No wine version on purpose: Lutris then uses its default, GE-Proton (Latest), via umu.
+  # It must be a Proton build; plain Wine has no icu.dll for icuuc.dll to forward to.
+  # (Setting `version: ge-proton` here fails: Lutris appends -x86_64 to it.)
+  wine:
+    dxvk: false
+    overrides:
+      dnsapi: n,b
+
+  system:
+    env:
+      # Qt WebEngine's Chromium sandbox doesn't work under Wine
+      QTWEBENGINE_CHROMIUM_FLAGS: --no-sandbox
+    prelaunch_command: /bin/sh "$GAMEDIR/preform-on-linux/prelaunch.sh"
+    prelaunch_wait: true
