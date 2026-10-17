@@ -155,13 +155,12 @@ PreForm's log (`%LOCALAPPDATA%\Formlabs\PreForm\Logs\log.txt`) then shows
   limit (`ulimit -v`) it fails with
   `err:virtual:allocate_virtual_memory out of memory ... size 800000000` and hits a
   breakpoint (0x80000003). Desktop sessions normally have no limit.
-- Manual launch for debugging (`systemd-run --user` escapes a shell's `ulimit -v`):
+- Debugging: `install.sh`'s launcher passes the environment through, so run it from a
+  terminal with Wine logging on (`systemd-run --user` escapes a shell's `ulimit -v`):
 
   ```sh
-  systemd-run --user -E WINEDLLOVERRIDES='dnsapi=n,b' -E WINEPREFIX=$HOME/Games/preform \
-    -E PROTONPATH=$HOME/.local/share/lutris/runners/wine/ge-proton \
-    -E GAMEID=umu-default -E STORE=none -E QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox \
-    -E WINEDEBUG=+loaddll,err -E DISPLAY=$DISPLAY -E WAYLAND_DISPLAY=$WAYLAND_DISPLAY \
-    ~/.local/share/lutris/runtime/umu/umu-run \
-    "$HOME/Games/preform/drive_c/Program Files/Formlabs/PreForm/PreFormLauncher.exe"
+  WINEDEBUG=+loaddll,err ~/.local/share/preform-on-linux/bin/preform
   ```
+
+  It sets `WINEPREFIX`, `GAMEID`, `PROTONPATH`, the `dnsapi=n,b` override and
+  `QTWEBENGINE_CHROMIUM_FLAGS` itself, then runs `PreFormLauncher.exe` with `umu-run`.

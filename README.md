@@ -64,27 +64,6 @@ After installing, you can add PreForm to Steam with **Add a Non-Steam Game** →
 `~/.local/share/preform-on-linux/bin/preform`. Leave Proton/compatibility *off* for it:
 the launcher runs Proton itself. (Not tested yet.)
 
-## Install with Lutris
-
-If you already use [Lutris](https://lutris.net) (0.5.17 or newer), there are installer
-scripts for it too. Lutris downloads them from this repo's latest release:
-
-```sh
-lutris -i https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/preform.yaml
-lutris -i https://github.com/vitaminmoo/preform-on-linux/releases/latest/download/preform-beta.yaml
-```
-
-With Flatpak Lutris, use `flatpak run net.lutris.Lutris -i <url>`. Release and beta
-both default to `~/Games/preform`; to install both, choose a different folder for the
-second one. The installers set up the same shims, plus a pre-launch script for
-`dnsapi.dll` and Lutris icon, banner and cover art
-([`preform-art.py`](lutris/preform-art.py)). They live here because lutris.net only
-accepts games.
-
-They use Lutris's default Wine version, GE-Proton (Latest). If you've changed Lutris's
-global Wine version to a non-Proton build such as Wine-GE, switch PreForm to a Proton
-build in its *Configure → Runner options*.
-
 ## Install by hand
 
 The same steps as `install.sh`, with [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher):
@@ -114,6 +93,14 @@ After PreForm updates itself, repeat the `dnsapi.dll` loop for the new version f
 For the beta, download `https://downloads.formlabs.com/PreForm/Beta/preform.exe` and
 use `Formlabs/PreForm-beta` in the paths.
 
+## Lutris (alternative)
+
+[`install.sh`](#install) is the supported way to install. If you'd rather manage PreForm
+from Lutris, the [`lutris/`](lutris) installers set up the same shims (plus Lutris art);
+run `lutris -i <url>` with the `preform.yaml` or `preform-beta.yaml` URL from the
+[latest release](https://github.com/vitaminmoo/preform-on-linux/releases/latest).
+They need a Proton build as Lutris's Wine version (the default, GE-Proton, works).
+
 ## Troubleshooting
 
 PreForm's log is at
@@ -135,7 +122,7 @@ PreForm's log is at
 | Path | |
 |---|---|
 | [`install.sh`](install.sh) | The installer above |
-| [`lutris/`](lutris) | Lutris installers for the release and the beta, and the art generator |
+| [`lutris/`](lutris) | Alternative Lutris installers, and the icon/art generator `install.sh` also uses |
 | [`shims/icuuc`](shims/icuuc) | `icuuc.dll`: export forwarders to Proton's `icu.dll` |
 | [`shims/dnsapi`](shims/dnsapi) | `dnsapi.dll`: proxy for Wine's `dnsapi` with an mDNS querier (`mdns.c`) |
 | [`tools/`](tools) | Regenerate the shims' export lists from a Proton install |
