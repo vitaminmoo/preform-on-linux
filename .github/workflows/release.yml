@@ -1,0 +1,30 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Fedora's mingw-w64 headers have the MDNS_QUERY_* types
+    container: fedora:44
+    permissions:
+      contents: write
+    steps:
+      - run: dnf install -y --setopt=install_weak_deps=False git make mingw64-gcc gh
+      - uses: actions/checkout@v4
+      - run: make
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shims
+          path: build/*.dll
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          gh release create "$GITHUB_REF_NAME" build/icuuc.dll build/dnsapi.dll lutris/preform.yaml --generate-notes
